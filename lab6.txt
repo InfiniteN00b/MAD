@@ -1,0 +1,188 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".MainActivity">
+
+    <TextView
+        android:id="@+id/textView"
+        android:layout_width="413dp"
+        android:layout_height="77dp"
+        android:text="Parser Application"
+        android:textAlignment="center"
+        android:textSize="48sp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.062" />
+
+    <Button
+        android:id="@+id/xml"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:onClick="parseXml"
+        android:text="ParseXML"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.193"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.263" />
+
+    <Button
+        android:id="@+id/json"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:onClick="parseJson"
+        android:text="ParseJSON"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.834"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.263" />
+
+    <TextView
+        android:id="@+id/display"
+        android:layout_width="339dp"
+        android:layout_height="368dp"
+        android:text=""
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.849" />
+</androidx.constraintlayout.widget.ConstraintLayout>
+
+
+
+
+
+
+
+package com.example.parserapplication;
+
+import androidx.appcompat.app.AppCompatActivity;
+
+import android.os.Bundle;
+import android.view.View;
+import android.widget.Button;
+import android.widget.TextView;
+import android.widget.Toast;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+
+public class MainActivity extends AppCompatActivity {
+    TextView display;
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+        display = (TextView) findViewById(R.id.display);
+    }
+    public void parseXml(View view) {
+        try {
+            InputStream is = getAssets().open("city.xml");
+            DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
+            DocumentBuilder documentBuilder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
+            Document document = documentBuilder.parse(is);
+            StringBuilder stringBuilder = new StringBuilder();
+            stringBuilder.append("XML DATA");
+            stringBuilder.append("\n--------------");
+            NodeList nodeList = document.getElementsByTagName("place");
+            for(int i = 0; i < nodeList.getLength(); i++) {
+                Node node = nodeList.item(i);
+                if(node.getNodeType() == Node.ELEMENT_NODE) {
+                    Element element = (Element) node;
+                    stringBuilder.append("\nName : ").append(getValue("name", element));
+                    stringBuilder.append("\nTemperature : ").append(getValue("temperature", element));
+                    stringBuilder.append("\nHumidity : ").append(getValue("humidity", element));
+                }
+            }
+            display.setText(stringBuilder.toString());
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+            Toast.makeText(this, "Error while Parsing XML", Toast.LENGTH_LONG).show();
+        }
+    }
+    private String getValue(String tag, Element element) {
+        return element.getElementsByTagName(tag).item(0).getChildNodes().item(0).getNodeValue();
+    }
+
+    public void parseJson(View view) {
+        String json;
+        StringBuilder stringBuilder = new StringBuilder();
+        try{
+            InputStream is = getAssets().open("city.json");
+            int size = is.available();
+            byte[] buffer = new byte[size];
+            is.read(buffer);
+            json = new String(buffer, StandardCharsets.UTF_8);
+            JSONArray jsonArray = new JSONArray(json);
+            stringBuilder.append("JSON DATA");
+            stringBuilder.append("\n--------------");
+            for(int i = 0; i < jsonArray.length(); i++) {
+                JSONObject jsonObject = jsonArray.getJSONObject(i);
+                stringBuilder.append("\nName :").append(jsonObject.getString("name"));
+                stringBuilder.append("\nTemperature :").append(jsonObject.getString("temperature"));
+                stringBuilder.append("\nHumidity :").append(jsonObject.getString("humidity"));
+            }
+            display.setText(stringBuilder.toString());
+        }
+        catch(Exception e) {
+            e.printStackTrace();
+            Toast.makeText(this, "Error while Parsing JSON", Toast.LENGTH_LONG).show();
+        }
+    }
+}
+
+
+
+
+
+
+[
+  {
+    "name" : "Bangaluru",
+    "temperature" : "30",
+    "humidity" : "92"
+  },
+  {
+    "name" : "Mysuru",
+    "temperature" : "35",
+    "humidity" : "85"
+  }
+]
+
+
+
+
+
+<?xml version="1.0"?>
+<records>
+    <place>
+        <name>Bangaluru</name>
+        <temperature>30</temperature>
+        <humidity>92</humidity>
+    </place>
+    <place>
+        <name>Mysuru</name>
+        <temperature>35</temperature>
+        <humidity>85</humidity>
+    </place>
+</records>
